@@ -20,7 +20,7 @@ As module:
 
 Check local and global modules required in a project's `tiapp.xml`:
 
-	~/project $ ti-i64
+	~/project $ ti-64
 	$ ti-64 --project-dir ~/project
 
 Check all global modules:
