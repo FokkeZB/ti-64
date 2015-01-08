@@ -5,11 +5,13 @@ var path = require('path');
 
 var chalk = require('chalk'),
   timodules = require('timodules'),
-  _ = require('lodash');
+  _ = require('lodash'),
+  async = require('async');
 
-var xcrun = require('./lib/xcrun');
+var xcrun = require('./lib/xcrun'),
+  util = require('./lib/util');
 
-module.exports = function ti64(opts) {
+module.exports = function ti64(opts, callback) {
   opts || (opts = {});
 
   var projectDir = path.resolve(opts.projectDir);
@@ -18,9 +20,9 @@ module.exports = function ti64(opts) {
     var allProjectModules, allGlobalModules, selectedGlobalModules = [],
       selectedProjectModules = [];
 
-    if (err) {
-      console.error(chalk.red(err));
-      process.exit(1);
+    if (err && !res) {
+      callback(err);
+      return;
 
     } else {
       allProjectModules = flatten(res.modules.project.iphone, false);
@@ -52,16 +54,32 @@ module.exports = function ti64(opts) {
 
       if (selectedProjectModules.length + selectedGlobalModules.length > 0) {
 
+        var tasks = [];
+
         if (selectedProjectModules.length > 0) {
-          check(selectedProjectModules);
+
+          tasks.push(function run(next) {
+            check(selectedProjectModules, next);
+          });
+
         }
 
         if (selectedGlobalModules) {
-          check(selectedGlobalModules);
+
+          tasks.push(function run(next) {
+            check(selectedGlobalModules, next);
+          });
+
         }
 
+        async.series(tasks, function after(err, res) {
+
+          callback(err, _.flatten(res));
+
+        });
+
       } else {
-        console.warn('No modules found');
+        callback('No modules found');
       }
     }
 
@@ -97,27 +115,25 @@ function flatten(modules, global) {
   return flat;
 }
 
-function check(modules) {
+function check(modules, callback) {
 
-  modules.forEach(function forEach(module) {
-    var prefix = chalk.yellow(module.name) + ':' + chalk.cyan(module.version) + '@' + chalk.yellow(module.global ? 'global' : 'project') + ' ';
+  async.mapSeries(modules, function forEach(module, next) {
 
     xcrun.getArchitectures(path.join(module.path, 'lib' + module.name + '.a'), function handle(err, architectures) {
 
       if (err) {
-        console.error(prefix + chalk.red(err));
+        next(util.prefix(module) + chalk.red(err));
 
       } else {
 
-        if (architectures.indexOf('x86_64') !== -1 && architectures.indexOf('arm64') !== -1) {
-          console.log(prefix + chalk.green(architectures.join(' ')));
-        } else {
-          console.error(prefix + chalk.red(architectures.join(' ')));
-        }
+        module.architectures = architectures;
+        module.is64 = (architectures.indexOf('x86_64') !== -1 && architectures.indexOf('arm64') !== -1);
+
+        next(null, module);
       }
 
     });
 
-  });
+  }, callback);
 
 }
