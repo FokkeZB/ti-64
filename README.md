@@ -8,11 +8,11 @@ Check all [Appcelerator Titanium](http://appcelerator.com/titanium) project and/
 
 As global CLI:
 
-  $ npm install -g ti-64
+    $ npm install -g ti-64
 
 As module:
 
-  $ npm install ti-64 --save
+    $ npm install ti-64 --save
 
 ## Usage
 
@@ -20,16 +20,16 @@ As module:
 
 Check local and global modules required in a project's `tiapp.xml`:
 
-	~/project $ ti-64
-	$ ti-64 --project-dir ~/project
+    ~/project $ ti-64
+    $ ti-64 --project-dir ~/project
 
 Check all global modules:
 
-	$ ti-64 --global
+    $ ti-64 --global
 
 ### Module
 
-```
+```js
 var ti64 = require('ti-64');
 
 ti64({
