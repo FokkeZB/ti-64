@@ -1,0 +1,37 @@
+{
+  "name": "ti-64",
+  "version": "1.0.0",
+  "description": "Check all Appcelerator Titanium project and/or global modules for 64-bit iOS support.",
+  "main": "index.js",
+  "bin": {
+    "ti-64": "./cli.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fokkezb/ti-64.git"
+  },
+  "keywords": [
+    "ios",
+    "titanium",
+    "appcelerator",
+    "64bit",
+    "arm64",
+    "x86_64",
+    "cli"
+  ],
+  "author": "Fokke Zandbergen",
+  "license": "Apache Public License v2",
+  "bugs": {
+    "url": "https://github.com/fokkezb/ti-64/issues"
+  },
+  "homepage": "https://github.com/fokkezb/ti-64",
+  "dependencies": {
+    "chalk": "^0.5.1",
+    "commander": "^2.6.0",
+    "lodash": "^2.4.1",
+    "timodules": "^0.1.1"
+  }
+}
