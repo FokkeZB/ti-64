@@ -74,7 +74,7 @@ ti64({
       console[module.has64 ? 'log' : 'error'](module.name);
 
       for (var version in module.version) {
-        console[version.has64 ? 'log' : 'error'](version.version + ' (' + (version.global ? 'global' : 'project') + ') ' + version.architectures.join(' '));
+        console[version.has64 ? 'log' : 'error'](version.version + ' (' + (version.global ? 'global' : 'project') + ') ' + (version.error || version.architectures.join(' ')));
       }
 
     }

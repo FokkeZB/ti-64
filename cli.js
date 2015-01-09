@@ -46,7 +46,7 @@ ti64({
         console[module.has64 ? 'log' : 'error'](chalk[module.has64 ? 'green' : 'red'](module.name));
 
         _.forEach(module.versions, function forEach(version) {
-          console[version.has64 ? 'log' : 'error']('  ' + chalk[version.has64 ? 'green' : 'red'](version.version) + (program.global ? '' : chalk.cyan(' (' + (version.global ? 'global' : 'project') + ')')) + ' ' + version.architectures.join(' '));
+          console[version.has64 ? 'log' : 'error']('  ' + chalk[version.has64 ? 'green' : 'red'](version.version) + (program.global ? '' : chalk.cyan(' (' + (version.global ? 'global' : 'project') + ')')) + ' ' + (version.error ? 'unknown ' + chalk.red('[ERROR] ' + version.error) : version.architectures.join(' ')));
         });
 
       });
