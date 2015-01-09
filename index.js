@@ -71,26 +71,36 @@ module.exports = function ti64(opts, callback) {
 
         }
 
-        async.series(tasks, function after(err, res) {
-          var modules = _.flatten(res);
-          var res = {};
+        async.parallel(tasks, function after(err, res) {
+          var modules;
 
-          modules.forEach(function forEach(module) {
+          if (err) {
+            callback(err);
 
-            if (res[module.name] === undefined) {
-              res[module.name] = {
-                name: module.name,
-                has64: false,
-                versions: []
-              };
-            }
+          } else {
+            modules = _.flatten(res);
+            res = {};
 
-            res[module.name].has64 = res[module.name].has64 || module.has64;
-            res[module.name].versions.push(module);
+            modules.forEach(function forEach(module) {
 
-          });
+              if (module) {
 
-          callback(null, res);
+                if (res[module.name] === undefined) {
+                  res[module.name] = {
+                    name: module.name,
+                    has64: false,
+                    versions: []
+                  };
+                }
+
+                res[module.name].has64 = res[module.name].has64 || module.has64;
+                res[module.name].versions.push(module);
+              }
+
+            });
+
+            callback(null, res);
+          }
 
         });
 
@@ -132,12 +142,13 @@ function flatten(modules, global) {
 
 function check(modules, callback) {
 
-  async.mapSeries(modules, function forEach(module, next) {
+  async.map(modules, function forEach(module, next) {
+    var libPath = path.join(module.path, 'lib' + module.name + '.a');
 
-    xcrun.getArchitectures(path.join(module.path, 'lib' + module.name + '.a'), function handle(err, architectures) {
+    xcrun.getArchitectures(libPath, function handle(err, architectures) {
 
       if (err) {
-        next(err);
+        next('[' + libPath + '] ' + err);
 
       } else {
 
