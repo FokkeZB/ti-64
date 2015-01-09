@@ -71,7 +71,7 @@ module.exports = function ti64(opts, callback) {
 
         }
 
-        async.parallel(tasks, function after(err, res) {
+        async.series(tasks, function after(err, res) {
           var modules;
 
           if (err) {
@@ -142,22 +142,21 @@ function flatten(modules, global) {
 
 function check(modules, callback) {
 
-  async.map(modules, function forEach(module, next) {
+  async.mapSeries(modules, function forEach(module, next) {
     var libPath = path.join(module.path, 'lib' + module.name + '.a');
 
     xcrun.getArchitectures(libPath, function handle(err, architectures) {
 
       if (err) {
-        next('[' + libPath + '] ' + err);
+        module.error = err;
 
       } else {
 
         module.architectures = architectures;
         module.has64 = (architectures.indexOf('x86_64') !== -1 && architectures.indexOf('arm64') !== -1);
-
-        next(null, module);
       }
 
+      next(null, module);
     });
 
   }, callback);
