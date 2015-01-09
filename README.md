@@ -86,7 +86,6 @@ ti64({
 
 ### Changelog
 
-* 2.0.1: Fixes bug where a corrupted binary would not be handled right
 * 2.0.0: Adds JSON output, Groups results by module, Improves error when ran outside of project, Adds update notification
 * 1.1.0: Improved module API, Fixes #2, Fixes `-g` still requiring to be run in project
 * 1.0.0: Initial version
