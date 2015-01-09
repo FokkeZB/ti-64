@@ -27,6 +27,33 @@ Check all global modules:
 
     $ ti-64 --global
 
+Get the output as JSON:
+
+    $ ti-64 --output json
+
+    {
+      "err": null,
+      "res": {
+        "analytics.google": {
+          "name": "analytics.google",
+          "has64": false,
+          "versions": [
+            {
+              "name": "analytics.google",
+              "version": "1.0",
+              "path": "/path/to/analytics.google/1.0",
+              "global": true,
+              "architectures": [
+                "armv7",
+                "i386"
+              ],
+              "has64": false
+            }
+          ]
+        }
+      }
+    }
+
 ### Module
 
 ```
@@ -34,7 +61,7 @@ var ti64 = require('ti-64');
 
 ti64({
 	projectDir: './project',
-	global: false
+	// global: true
 
 }, function handle(err, res) {
 
@@ -43,9 +70,14 @@ ti64({
 
   } else {
 
-    res.forEach(function forEach(module) {
-      console[module.is64 ? 'log' : 'error'](module.name + '@' + module.version + ':' + (module.global ? 'global' : 'project') + ' ' + module.architectures.join(' ')));
-    });
+    for (var module in res) {
+      console[module.has64 ? 'log' : 'error'](module.name);
+
+      for (var version in module.version) {
+        console[version.has64 ? 'log' : 'error'](version.version + ' (' + (version.global ? 'global' : 'project') + ') ' + version.architectures.join(' '));
+      }
+
+    }
 
   }
 
@@ -54,5 +86,6 @@ ti64({
 
 ### Changelog
 
-* 1.1.0: Improved module API, Fixes #1, Fixes `-g` still requiring to be run in project
+* 2.0.0: Adds JSON output, Groups results by module, Improves error when ran outside of project, Adds update notification
+* 1.1.0: Improved module API, Fixes #2, Fixes `-g` still requiring to be run in project
 * 1.0.0: Initial version

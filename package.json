@@ -9,6 +9,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "directories": {
+    "lib": "./lib"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/fokkezb/ti-64.git"
@@ -33,6 +36,7 @@
     "chalk": "^0.5.1",
     "commander": "^2.6.0",
     "lodash": "^2.4.1",
-    "timodules": "^0.1.1"
+    "timodules": "^0.1.1",
+    "update-notifier": "^0.2.2"
   }
 }

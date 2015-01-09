@@ -8,8 +8,7 @@ var chalk = require('chalk'),
   _ = require('lodash'),
   async = require('async');
 
-var xcrun = require('./lib/xcrun'),
-  util = require('./lib/util');
+var xcrun = require('./lib/xcrun');
 
 module.exports = function ti64(opts, callback) {
   opts || (opts = {});
@@ -20,8 +19,8 @@ module.exports = function ti64(opts, callback) {
     var allProjectModules, allGlobalModules, selectedGlobalModules = [],
       selectedProjectModules = [];
 
-    if (err && !res) {
-      callback(err);
+    if (err && (!opts.global || !res)) {
+      callback('No project found');
       return;
 
     } else {
@@ -73,8 +72,25 @@ module.exports = function ti64(opts, callback) {
         }
 
         async.series(tasks, function after(err, res) {
+          var modules = _.flatten(res);
+          var res = {};
 
-          callback(err, _.flatten(res));
+          modules.forEach(function forEach(module) {
+
+            if (res[module.name] === undefined) {
+              res[module.name] = {
+                name: module.name,
+                has64: false,
+                versions: []
+              };
+            }
+
+            res[module.name].has64 = res[module.name].has64 || module.has64;
+            res[module.name].versions.push(module);
+
+          });
+
+          callback(null, res);
 
         });
 
@@ -102,7 +118,6 @@ function flatten(modules, global) {
 
       flat.push({
         name: name,
-        platform: 'iphone',
         version: version,
         path: info.modulePath,
         global: global
@@ -122,12 +137,12 @@ function check(modules, callback) {
     xcrun.getArchitectures(path.join(module.path, 'lib' + module.name + '.a'), function handle(err, architectures) {
 
       if (err) {
-        next(util.prefix(module) + chalk.red(err));
+        next(err);
 
       } else {
 
         module.architectures = architectures;
-        module.is64 = (architectures.indexOf('x86_64') !== -1 && architectures.indexOf('arm64') !== -1);
+        module.has64 = (architectures.indexOf('x86_64') !== -1 && architectures.indexOf('arm64') !== -1);
 
         next(null, module);
       }
