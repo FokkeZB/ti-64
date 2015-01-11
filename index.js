@@ -6,6 +6,7 @@ var path = require('path');
 var chalk = require('chalk'),
   timodules = require('timodules'),
   _ = require('lodash'),
+  glob = require('glob'),
   async = require('async');
 
 var xcrun = require('./lib/xcrun');
@@ -15,101 +16,195 @@ module.exports = function ti64(opts, callback) {
 
   var projectDir = path.resolve(opts.projectDir);
 
-  timodules.list(projectDir, function handle(err, res) {
-    var allProjectModules, allGlobalModules, selectedGlobalModules = [],
-      selectedProjectModules = [];
+  if (opts.path) {
 
-    if (err && (!opts.global || !res)) {
-      callback('No project found');
-      return;
+    if (path.extname(opts.path) === '.a') {
+      var libPath = path.resolve(opts.path);
 
-    } else {
-      allProjectModules = flatten(res.modules.project.iphone, false);
-      allGlobalModules = flatten(res.modules.global.iphone, true);
+      checkLib(libPath, function handle(err, res) {
 
-      if (!opts.global) {
-        selectedProjectModules = [];
-        selectedGlobalModules = [];
+        if (err) {
+          callback(err);
 
-        res.current.forEach(function forEach(currentModule) {
-          var matchedModules;
+        } else {
+          var modules = {};
 
-          if ((currentModule.platform === undefined || currentModule.platform === 'iphone')) {
-            matchedModules = _.filter(allProjectModules, filter, currentModule);
+          var matches = libPath.match(/(?:\/([0-9].+)\/)?lib(.+)\.a$/);
 
-            if (matchedModules.length > 0) {
-              selectedProjectModules = selectedProjectModules.concat(matchedModules);
-
-            } else {
-              selectedGlobalModules = selectedGlobalModules.concat(_.filter(allGlobalModules, filter, currentModule));
-            }
-          }
-
-        });
-
-      } else {
-        selectedGlobalModules = allGlobalModules;
-      }
-
-      if (selectedProjectModules.length + selectedGlobalModules.length > 0) {
-
-        var tasks = [];
-
-        if (selectedProjectModules.length > 0) {
-
-          tasks.push(function run(next) {
-            check(selectedProjectModules, next);
-          });
-
-        }
-
-        if (selectedGlobalModules) {
-
-          tasks.push(function run(next) {
-            check(selectedGlobalModules, next);
-          });
-
-        }
-
-        async.series(tasks, function after(err, res) {
-          var modules;
-
-          if (err) {
-            callback(err);
+          if (!matches) {
+            callback('Failed to parse path: ' + libPath);
 
           } else {
-            modules = _.flatten(res);
-            res = {};
+            var name = matches[2].toLowerCase();
 
-            modules.forEach(function forEach(module) {
+            res.name = name;
+            res.version = matches[1];
+            res.path = libPath;
 
-              if (module) {
+            modules[name] = {
+              name: name,
+              versions: [res]
+            };
 
-                if (res[module.name] === undefined) {
-                  res[module.name] = {
-                    name: module.name,
-                    has64: false,
-                    versions: []
-                  };
-                }
+            callback(null, modules);
+          }
+        }
 
-                res[module.name].has64 = res[module.name].has64 || module.has64;
-                res[module.name].versions.push(module);
+      });
+
+    } else {
+
+      glob('**/lib*.*.a', {
+        cwd: projectDir
+
+      }, function handle(er, files) {
+
+        if (er) {
+          callback(er);
+
+        } else {
+          modules = {};
+
+          async.mapSeries(files, function forEach(file, next) {
+            var libPath = path.join(projectDir, file);
+
+            var matches = libPath.match(/(?:\/([0-9].+)\/)?lib(.+)\.a$/);
+
+            if (!matches) {
+              next('Failed to parse path: ' + libPath);
+
+            } else {
+              var name = matches[2].toLowerCase();
+
+              if (!modules[name]) {
+                modules[name] = {
+                  name: name,
+                  versions: []
+                };
               }
 
-            });
+              var version = {
+                name: name,
+                version: matches[1],
+                path: path.dirname(libPath)
+              };
 
-            callback(null, res);
-          }
+              checkLib(libPath, function handle(err, res) {
 
-        });
+                if (err) {
+                  version.error = err;
 
-      } else {
-        callback('No modules found');
-      }
+                } else {
+                  _.extend(version, res);
+                }
+
+                modules[name].versions.push(version);
+
+                next();
+
+              });
+            }
+
+          }, function after(err) {
+            callback(err, modules);
+          });
+
+        }
+      });
     }
 
-  });
+  } else {
+
+    timodules.list(projectDir, function handle(err, res) {
+      var projectModules, globalModules, selectedModules = [];
+
+      if (err && (!opts.global || !res)) {
+        callback('No project found');
+        return;
+
+      } else {
+        projectModules = flatten(res.modules.project.iphone, true);
+        globalModules = flatten(res.modules.global.iphone, false);
+
+        if (!opts.global) {
+
+          res.current.forEach(function forEach(currentModule) {
+            var matchedModules;
+
+            if ((currentModule.platform === undefined || currentModule.platform === 'iphone')) {
+              matchedModules = _.filter(projectModules, filter, currentModule);
+
+              if (matchedModules.length > 0) {
+                selectedModules = selectedModules.concat(matchedModules);
+
+              } else {
+                selectedModules = selectedModules.concat(_.filter(globalModules, filter, currentModule));
+              }
+            }
+
+          });
+
+        } else {
+          selectedModules = globalModules;
+        }
+
+        if (selectedModules.length) {
+
+          async.mapSeries(modules, function forEach(module, next) {
+            var libPath = path.join(module.path, 'lib' + module.name + '.a');
+
+            checkLib(libPath, function handle(err, res) {
+
+              if (err) {
+                module.error = err;
+
+              } else {
+                _.extend(module, res);
+              }
+
+              next(null, module);
+            });
+
+          }, function after(err, res) {
+            var modules;
+
+            if (err) {
+              callback(err);
+
+            } else {
+              modules = res;
+              res = {};
+
+              modules.forEach(function forEach(module) {
+
+                if (module) {
+
+                  if (res[module.name] === undefined) {
+                    res[module.name] = {
+                      name: module.name,
+                      has64: false,
+                      versions: []
+                    };
+                  }
+
+                  res[module.name].has64 = res[module.name].has64 || module.has64;
+                  res[module.name].versions.push(module);
+                }
+
+              });
+
+              callback(null, res);
+            }
+
+          });
+
+        } else {
+          callback('No modules found');
+        }
+      }
+
+    });
+  }
 
 };
 
@@ -119,7 +214,7 @@ function filter(module) {
   return (module.name === wantedModule.name && (wantedModule.version === undefined || wantedModule.version === module.version));
 }
 
-function flatten(modules, global) {
+function flatten(modules, project) {
   var flat = [];
 
   _.each(modules, function forEach(versions, name) {
@@ -130,7 +225,7 @@ function flatten(modules, global) {
         name: name,
         version: version,
         path: info.modulePath,
-        global: global
+        project: project
       });
 
     });
@@ -140,25 +235,19 @@ function flatten(modules, global) {
   return flat;
 }
 
-function check(modules, callback) {
+function checkLib(libPath, callback) {
 
-  async.mapSeries(modules, function forEach(module, next) {
-    var libPath = path.join(module.path, 'lib' + module.name + '.a');
+  xcrun.getArchitectures(libPath, function handle(err, architectures) {
 
-    xcrun.getArchitectures(libPath, function handle(err, architectures) {
+    if (err) {
+      callback(err);
 
-      if (err) {
-        module.error = err;
-
-      } else {
-
-        module.architectures = architectures;
-        module.has64 = (architectures.indexOf('x86_64') !== -1 && architectures.indexOf('arm64') !== -1);
-      }
-
-      next(null, module);
-    });
-
-  }, callback);
+    } else {
+      callback(null, {
+        architectures: architectures,
+        has64: (architectures.indexOf('x86_64') !== -1 && architectures.indexOf('arm64') !== -1)
+      });
+    }
+  });
 
 }

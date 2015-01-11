@@ -26,6 +26,14 @@ Check local and global modules required in a project's `tiapp.xml`:
 Check all global modules:
 
     $ ti-64 --global
+    
+Check a specific `lib*.a` file:
+
+	$ ti-64 build/libmy.module.a
+	
+Check all `lib*.a` files under a given path:
+
+	$ ti-64 ./
 
 Get the output as JSON:
 
@@ -61,7 +69,8 @@ var ti64 = require('ti-64');
 
 ti64({
 	projectDir: './project',
-	// global: true
+	// global: true,
+	// path: './build/my.module.a'
 
 }, function handle(err, res) {
 
@@ -74,7 +83,7 @@ ti64({
       console[module.has64 ? 'log' : 'error'](module.name);
 
       for (var version in module.version) {
-        console[version.has64 ? 'log' : 'error'](version.version + ' (' + (version.global ? 'global' : 'project') + ') ' + (version.error || version.architectures.join(' ')));
+        console[version.has64 ? 'log' : 'error'](version.version + ' (' + (version.project ? 'project' : 'global') + ') ' + (version.error || version.architectures.join(' ')));
       }
 
     }
@@ -86,6 +95,7 @@ ti64({
 
 ### Changelog
 
+* 2.1.0: Adds checking a given or all `lib*.a` files for a given path
 * 2.0.0: Adds JSON output, Groups results by module, Improves error when ran outside of project, Adds update notification
 * 1.1.0: Improved module API, Fixes #2, Fixes `-g` still requiring to be run in project
 * 1.0.0: Initial version

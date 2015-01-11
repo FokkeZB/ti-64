@@ -10,6 +10,7 @@ var pkg = require('./package.json'),
 
 program
   .version(pkg.version, '-v, --version')
+  .usage('[options] [path]')
   .description(pkg.description)
   .option('-d, --project-dir <path>', 'the directory containing the project ' + chalk.grey('[.]'), process.cwd())
   .option('-g, --global', 'check all global modules')
@@ -24,7 +25,8 @@ updateNotifier({
 
 ti64({
   projectDir: program.projectDir,
-  global: program.global
+  global: program.global,
+  path: program.args[0]
 
 }, function handle(err, res) {
 
@@ -46,7 +48,7 @@ ti64({
         console[module.has64 ? 'log' : 'error'](chalk[module.has64 ? 'green' : 'red'](module.name));
 
         _.forEach(module.versions, function forEach(version) {
-          console[version.has64 ? 'log' : 'error']('  ' + chalk[version.has64 ? 'green' : 'red'](version.version) + (program.global ? '' : chalk.cyan(' (' + (version.global ? 'global' : 'project') + ')')) + ' ' + (version.error ? 'unknown ' + chalk.red('[ERROR] ' + version.error) : version.architectures.join(' ')));
+          console[version.has64 ? 'log' : 'error']('  ' + chalk[version.has64 ? 'green' : 'red'](version.version) + ((program.global || program.args[0]) ? '' : chalk.cyan(' (' + (version.project ? 'project' : 'global') + ')')) + ' ' + (version.error ? 'undefined ' + chalk.red('[ERROR] ' + version.error) : version.architectures.join(' ')));
         });
 
       });
