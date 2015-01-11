@@ -150,7 +150,7 @@ module.exports = function ti64(opts, callback) {
 
         if (selectedModules.length) {
 
-          async.mapSeries(modules, function forEach(module, next) {
+          async.mapSeries(selectedModules, function forEach(module, next) {
             var libPath = path.join(module.path, 'lib' + module.name + '.a');
 
             checkLib(libPath, function handle(err, res) {
