@@ -1,6 +1,8 @@
 # Ti-64 [![Dependencies](https://david-dm.org/fokkezb/ti-64/status.svg?style=flat-square)](https://david-dm.org/fokkezb/ti-html2as#info=dependencies)
 
-Check all [Appcelerator Titanium](http://appcelerator.com/titanium) project and/or global modules for 64-bit iOS support.
+Check all [Appcelerator Titanium](http://appcelerator.com/titanium) iOS modules you have installed in a project or global for 64-bit iOS support.
+
+New apps [are required](https://developer.apple.com/news/?id=12172014b) to include 64-bit support from Feb 1, while updated have until June 1. Follow [these steps](http://docs.appcelerator.com/titanium/release-notes/?version=3.5.0.RC#modules) to update your own and OSS modules to support 64-bit.
 
 ![screenshot](screenshot.png)
 
