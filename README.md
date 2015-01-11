@@ -31,13 +31,13 @@ Check all global modules:
 
     $ ti-64 --global
     
-Check a specific `lib*.a` file:
+Check all `lib*.*.a` files under a given path:
 
-	$ ti-64 build/libmy.module.a
-	
-Check all `lib*.a` files under a given path:
+    $ ti-64 .
 
-	$ ti-64 ./
+Check a specific `lib*.*.a` file:
+
+    $ ti-64 build/libmy.module.a
 
 Get the output as JSON:
 
