@@ -20,7 +20,7 @@ program.parse(process.argv);
 
 updateNotifier({
   packageName: pkg.name,
-  packageVersion: '0.1.0' //pkg.version
+  packageVersion: pkg.version
 }).notify();
 
 ti64({
