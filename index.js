@@ -123,7 +123,7 @@ module.exports = function ti64(opts, callback) {
         return;
 
       } else {
-        projectModules = flatten(res.modules.project.iphone, true);
+        projectModules = res.modules.project ? flatten(res.modules.project.iphone, true) : [];
         globalModules = flatten(res.modules.global.iphone, false);
 
         if (!opts.global) {
