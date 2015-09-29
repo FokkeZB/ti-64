@@ -37,7 +37,7 @@
     "commander": "^2.6.0",
     "glob": "^4.3.2",
     "lodash": "^2.4.1",
-    "timodules": "^0.1.1",
+    "timodules": "https://github.com/dbankier/timodules.git",
     "update-notifier": "^0.2.2"
   }
 }
