@@ -1,6 +1,6 @@
 {
   "name": "ti-64",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "description": "Check all Appcelerator Titanium project and/or global modules for 64-bit iOS support.",
   "main": "index.js",
   "bin": {
